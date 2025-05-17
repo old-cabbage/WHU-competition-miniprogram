@@ -1,4 +1,14 @@
-<!-- pages/bracketSvg/bracketSvg.wxml -->
-<scroll-view scroll-x scroll-y style="height:100vh">
-  <image src="/images/tenfeibei/2025tengfeibei.svg" mode="widthFix" style="width:100%;height:auto;" />
-</scroll-view>
+<movable-area style="width: 100vw; height: 80vh;">
+  <movable-view
+    x="{{x}}"
+    y="{{y}}"
+    scale
+    scale-min="1"
+    scale-max="5"
+    scale-value="{{scale}}"
+    style="width: 80vw; height: 60vh;"
+    bindchange="onScaleChange"
+  >
+    <image src="/images/tenfeibei/2025tengfeibei.svg" style="width:100%;height:100%;" mode="widthFix"/>
+  </movable-view>
+</movable-area>
