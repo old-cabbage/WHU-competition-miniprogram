@@ -1,13 +1,14 @@
 {
   "pages": [
     "pages/index/index",
-    "pages/user-center/index"
+    "pages/user-center/index",
+    "pages/tengfei/index"
   ],
   "window": {
     "backgroundColor": "#F6F6F6",
     "backgroundTextStyle": "light",
     "navigationBarBackgroundColor": "#F6F6F6",
-    "navigationBarTitleText": "武大竞赛",
+    "navigationBarTitleText": "珞珈竞赛",
     "navigationBarTextStyle": "black"
   },
   "sitemapLocation": "sitemap.json",
