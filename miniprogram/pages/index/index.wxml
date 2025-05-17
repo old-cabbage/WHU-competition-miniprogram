@@ -1,0 +1,9 @@
+<view class="container">
+  <view class="competition-entry" bindtap="navigateToTengfei">
+    <image class="entry-bg" src="/images/tengfei-bg.jpg" mode="aspectFill"></image>
+    <view class="entry-content">
+      <text class="entry-title">腾飞杯</text>
+      <text class="entry-desc">武汉大学最具影响力校级篮球比赛</text>
+    </view>
+  </view>
+</view> 

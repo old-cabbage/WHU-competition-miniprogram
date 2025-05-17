@@ -1,0 +1,46 @@
+.container {
+  padding: 20rpx;
+}
+
+.competition-entry {
+  position: relative;
+  width: 100%;
+  height: 400rpx;
+  border-radius: 24rpx;
+  overflow: hidden;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.1);
+  margin-bottom: 30rpx;
+}
+
+.entry-bg {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.entry-content {
+  position: relative;
+  z-index: 1;
+  padding: 40rpx;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+}
+
+.entry-title {
+  color: #ffffff;
+  font-size: 48rpx;
+  font-weight: bold;
+  margin-bottom: 16rpx;
+  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.3);
+}
+
+.entry-desc {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 28rpx;
+  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.3);
+} 
