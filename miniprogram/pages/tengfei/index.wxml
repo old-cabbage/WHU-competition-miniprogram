@@ -1,14 +1,78 @@
-<movable-area style="width: 100vw; height: 80vh;">
-  <movable-view
-    x="{{x}}"
-    y="{{y}}"
-    scale
-    scale-min="1"
-    scale-max="5"
-    scale-value="{{scale}}"
-    style="width: 80vw; height: 60vh;"
-    bindchange="onScaleChange"
-  >
-    <image src="/images/tenfeibei/2025tengfeibei.svg" style="width:100%;height:100%;" mode="widthFix"/>
-  </movable-view>
-</movable-area>
+<view class="container">
+  <movable-area class="movable-area" scale-area>
+    <movable-view
+      class="movable-view"
+      direction="all"
+      scale
+      bindscale="onScale"
+      bindchange="onChange"
+      x="{{x}}"
+      y="{{y}}"
+      scale="{{scale}}"
+      damping="100"
+      friction="100"
+      scale-min="1"
+      scale-max="5">
+      <!-- SVG图片显示区域 -->
+      <view class="svg-container">
+        <!-- 使用image标签直接显示SVG -->
+        <image
+          src="https://challonge.com/zh_CN/2025tengfeibei.svg"
+          mode="widthFix"
+          style="width: 100%; height: auto;"
+        />
+      </view>
+    </movable-view>
+  </movable-area>
+
+  <!-- 比赛列表区域 -->
+  <view class="match-list">
+    <block wx:for="{{matches}}" wx:key="matchId">
+      <view class="match-item">
+        <view class="match-info">
+          <text>{{item.time}} - {{item.location}}</text>
+        </view>
+        <view class="teams">
+          <text>{{item.teamA}}</text>
+          <text> VS </text>
+          <text>{{item.teamB}}</text>
+        </view>
+
+        <!-- 已投票信息显示区域 -->
+        <view class="voted-info" wx:if="{{item.hasVoted}}">
+          <text>您已投给 </text><text class="voted-team-name">{{item.voteFor === 'teamA' ? item.teamA : item.teamB}}</text>
+        </view>
+
+        <view class="vote-section">
+          <button
+            class="vote-button"
+            data-matchid="{{item.matchId}}"
+            data-team="teamA"
+            bindtap="vote"
+            disabled="{{item.hasVoted}}"
+          >
+            投给 {{item.teamA}}
+          </button>
+          <button
+            class="vote-button"
+            data-matchid="{{item.matchId}}"
+            data-team="teamB"
+            bindtap="vote"
+            disabled="{{item.hasVoted}}"
+          >
+            投给 {{item.teamB}}
+          </button>
+        </view>
+        <!-- 投票人数显示区域 -->
+        <view class="vote-counts">
+          <text>{{item.teamA}} 投票数: {{item.teamAVotes}}</text>
+          <text>{{item.teamB}} 投票数: {{item.teamBVotes}}</text>
+          <!-- 移除已投票信息文本 -->
+          <!-- <text wx:if="{{item.hasVoted}}"> (您已投给 {{item.voteFor === 'teamA' ? item.teamA : item.teamB}}) </text> -->
+        </view>
+
+      </view>
+    </block>
+  </view>
+
+</view>

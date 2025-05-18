@@ -42,3 +42,193 @@ web-view {
   width: 100%;
   height: 100%;
 }
+
+.vote-container {
+  margin-top: 20rpx;
+  padding: 20rpx;
+  background: #f6f6f6;
+  border-radius: 12rpx;
+}
+
+.match-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 20rpx;
+}
+
+.vote-buttons {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 20rpx;
+}
+
+.vote-btn {
+  width: 200rpx;
+  background: #07C160;
+  color: white;
+}
+
+.vote-btn[disabled] {
+  background: #ccc;
+  color: #fff;
+}
+
+.vote-result {
+  margin-top: 20rpx;
+  text-align: center;
+  color: #07C160;
+  font-size: 28rpx;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20rpx;
+}
+
+.movable-area {
+  width: 100%;
+  height: 600rpx; /* 根据实际SVG高度调整 */
+  background-color: #f0f0f0;
+  overflow: hidden;
+  border-radius: 24rpx; /* 添加圆角 */
+  margin-bottom: 20rpx; /* 与下方比赛列表的间距 */
+}
+
+.movable-view {
+  width: 100%; /* 或者根据SVG的原始尺寸调整 */
+  height: 100%; /* 或者根据SVG的原始尺寸调整 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.svg-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.svg-content {
+   width: 100%;
+  height: 100%;
+}
+
+.match-list {
+  width: 100%;
+  margin-top: 20rpx;
+}
+
+.match-item {
+  border: 1px solid #eee;
+  border-radius: 24rpx;
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+  background-color: #fff;
+  box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.1);
+}
+
+.match-info {
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 10rpx;
+}
+
+.teams {
+  font-size: 32rpx;
+  font-weight: bold;
+  margin-bottom: 20rpx;
+}
+
+.voted-info {
+  text-align: center;
+  font-size: 24rpx;
+  color: #0ace6f; /* 绿色文本 */
+  margin-bottom: 15rpx; /* 与下方按钮的间距 */
+  font-weight: bold; /* 加粗文本 */
+  width: 100%; /* 确保占据整行 */
+}
+
+.voted-team-name {
+  color: #015921; /* 设置队伍名称的颜色，这里使用橙色作为示例 */
+  margin-left: 5rpx; /* 与前面的文本 sedikit 间隔 */
+}
+
+.vote-section {
+  display: flex;
+  /* justify-content: space-around; */
+  justify-content: space-between; /* 按钮左右对齐，中间留空 */
+  align-items: center; /* 垂直居中 */
+  width: 100%; /* 确保占据整行 */
+  padding: 0 20rpx; /* 添加左右内边距 */
+  box-sizing: border-box; /* 将内边距计算在宽度内 */
+}
+
+.vote-button {
+  /* width: calc(50% - 15rpx); */ /* 调整宽度，增加按钮间距 */
+  width: calc(50% - 15rpx); /* 调整宽度，增加按钮间距 */
+  font-size: 28rpx;
+  border-radius: 24rpx; /* 调整圆角为方形 */
+  background-color: #139e4f; /* 绿色背景 */
+  color: white; /* 白色文字 */
+  padding: 15rpx 0; /* 调整内边距 */
+  height: auto; /* 高度自适应文字 */
+  line-height: 1.5; /* 行高 */
+  text-align: center; /* 确保文字居中 */
+  /* 移除外边距控制间隔的方式 */
+  margin-right: 0; 
+}
+
+/* 给第一个投票按钮添加右侧外边距来创建间隔 */
+.vote-section .vote-button:first-child {
+  margin-right: 35rpx; /* 调整这个值来控制间隔大小 */
+}
+
+/* 最后一个按钮不需要右侧外边距 - 此规则现在多余，但保留 */
+.vote-section .vote-button:last-child {
+  margin-right: 0; 
+}
+
+.vote-button::after {
+  border: none; /* 移除默认边框 */
+}
+
+.vote-button[disabled] {
+  background-color: #ccc; /* 禁用状态的背景色 */
+  color: #fff; /* 禁用状态的文字颜色 */
+}
+
+.vote-counts {
+  margin-top: 15rpx;
+  font-size: 26rpx;
+  color: #333;
+  /* text-align: center; */
+  display: flex; /* 使用flex布局 */
+  justify-content: space-around; /* 平均分布 */
+  align-items: center;
+  padding: 0 20rpx; /* 增加左右内边距 */
+  font-weight: bold; /* 加粗文字 */
+  color: #555; /* 更深的颜色 */
+  width: 100%; /* 确保占据整行 */
+  box-sizing: border-box; /* 将内边距计算在宽度内 */
+}
+
+.vote-counts text {
+  margin: 0 10rpx; /* 分隔各个文本 */
+}
+
+/* 可以为已投票状态的文本增加样式 */
+/* .vote-counts text:last-child { */
+/*    color: #07C160;  已投票信息使用绿色 */
+/*    font-weight: normal;  已投票信息不加粗 */
+/*    margin-left: 20rpx;  与投票数拉开距离 */
+/* } */
+
+/* 确保图片在圆角区域内显示正常 */
+.movable-view image {
+  border-radius: 24rpx; /* 图片也添加圆角 */
+}
