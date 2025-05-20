@@ -1,12 +1,19 @@
-# 云开发 quickstart
+# 珞珈竞赛
 
-这是云开发的快速启动指引，其中演示了如何上手使用云开发的三大基础能力：
+这是珞珈竞赛小程序源文件的仓库，欢迎大家使用珞珈竞赛小程序，向我们提出宝贵意见。
 
-- 数据库：一个既可在小程序前端操作，也能在云函数中读写的 JSON 文档型数据库
-- 文件存储：在小程序前端直接上传/下载云端文件，在云开发控制台可视化管理
-- 云函数：在云端运行的代码，微信私有协议天然鉴权，开发者只需编写业务逻辑代码
+# 开发教程
 
-## 参考文档
+学习微信小程序的开发并对成为本项目的开发者
 
-- [云开发文档](https://developers.weixin.qq.com/miniprogram/dev/wxcloud/basis/getting-started.html)
+官方文档是十分不错的入门方式
+
+## 官方文档
+
+- [小程序设计指南](https://developers.weixin.qq.com/miniprogram/design/index.html)
+- [小程序开发教程](https://developers.weixin.qq.com/miniprogram/dev/framework/)
+- [小程序框架](https://developers.weixin.qq.com/miniprogram/dev/framework/MINA.html)
+- [小程序组件](https://developers.weixin.qq.com/miniprogram/dev/component/)
+- [小程序 API](https://developers.weixin.qq.com/miniprogram/dev/api/)
+- [小程序开发者工具](https://developers.weixin.qq.com/miniprogram/dev/devtools/devtools.html)
 

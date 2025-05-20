@@ -70,6 +70,8 @@ Page({
           voteFor: '',
           teamAVotes: 0,
           teamBVotes: 0,
+          teamAPercentage: 0, // 添加百分比字段
+          teamBPercentage: 0, // 添加百分比字段
           votingOpen: votingOpen, // Add voting status flag
           displayTime: displayTime, // Add formatted time for display
           matchType: match.matchType // Add match type
@@ -83,13 +85,13 @@ Page({
       // 获取比赛列表后检查用户投票状态
       await this.checkUserVote()
 
-      // 只获取已投票比赛的投票总数
-      const votedMatchIds = this.data.matches
-        .filter(match => match.hasVoted)
-        .map(match => match.matchId)
-      
-      if (votedMatchIds.length > 0) {
-        await this.getMatchVoteCounts(votedMatchIds)
+      // 只获取已投票比赛的投票总数 或者 投票已关闭的比赛的总数
+      const matchesToGetCounts = this.data.matches.filter(match => match.hasVoted || !match.votingOpen)
+
+      const matchIds = matchesToGetCounts.map(match => match.matchId)
+
+      if (matchIds.length > 0) {
+        await this.getMatchVoteCounts(matchIds)
       }
 
     } catch (error) {
@@ -120,18 +122,36 @@ Page({
         const updatedMatches = this.data.matches.map(match => {
           const counts = voteCounts[match.matchId]
           if (counts) {
+            const totalVotes = (counts.teamAVotes || 0) + (counts.teamBVotes || 0)
+            const teamAPercentage = totalVotes > 0 ? Math.round(((counts.teamAVotes || 0) / totalVotes) * 100) : 0
+            // Ensure percentages add up to 100%, assign remainder to team B
+            const teamBPercentage = 100 - teamAPercentage
+
+
             return {
               ...match,
               teamAVotes: counts.teamAVotes || 0,
-              teamBVotes: counts.teamBVotes || 0
+              teamBVotes: counts.teamBVotes || 0,
+              teamAPercentage: teamAPercentage, // 更新百分比
+              teamBPercentage: teamBPercentage // 更新百分比
             }
           } else {
-            return match
+            // If no counts for a match (e.g., no votes yet and voting open), keep percentages at 0
+            // Also keep existing vote counts if they exist from a previous state before the fetch
+            return {
+              ...match,
+              teamAVotes: match.teamAVotes || 0, // Preserve existing count if fetch failed for this match
+              teamBVotes: match.teamBVotes || 0, // Preserve existing count if fetch failed for this match
+              teamAPercentage: 0,
+              teamBPercentage: 0
+            }
           }
         })
         this.setData({
           matches: updatedMatches
         })
+      } else {
+         console.error('获取投票统计失败：云函数返回success为false或无voteCounts', result)
       }
 
     } catch (error) {
@@ -215,26 +235,21 @@ Page({
 
     const currentMatch = this.data.matches[matchIndex]
 
-    if (currentMatch.hasVoted) {
-      wx.showToast({
-        title: '您已投过票',
-        icon: 'none'
-      })
-      return
+    // 双重校验：如果比赛未开启投票或已投票，直接返回并给出提示
+    if (!currentMatch.votingOpen) {
+        wx.showToast({
+            title: '该比赛已开始或已结束，无法投票',
+            icon: 'none'
+        });
+        return;
     }
 
-    // Parse match time string to Date object, replacing space with 'T' for better iOS compatibility
-    const matchTimeString = currentMatch.time.replace(' ', 'T')
-    const matchTime = new Date(matchTimeString)
-    const currentTime = new Date()
-
-    // Check if current time is after match time
-    if (currentTime > matchTime) {
-      wx.showToast({
-        title: '该比赛已开始或已结束，无法投票',
-        icon: 'none'
-      })
-      return
+    if (currentMatch.hasVoted) {
+        wx.showToast({
+            title: '您已投过票',
+            icon: 'none'
+        });
+        return;
     }
 
     let loadingShown = false
@@ -264,40 +279,60 @@ Page({
         }
       })
 
-      // 投票成功后，重新获取该比赛的投票人数并更新前端显示
-      await this.getMatchVoteCounts([matchid])
-
-      // 更新前端投票状态
-      const updatedMatches = this.data.matches.map(match => {
-        if (match.matchId === matchid) {
-          return {
-            ...match,
-            hasVoted: true,
-            voteFor: team
-          }
-        } else {
-          return match
+      // 投票成功后，获取当前比赛的最新投票数并更新前端显示
+      const { result: voteCountsResult } = await wx.cloud.callFunction({
+        name: 'gettengfeibeiMatchVoteCounts',
+        data: {
+          matchIds: [matchid]
         }
-      })
-      this.setData({
-        matches: updatedMatches
-      })
+      });
 
-      wx.showToast({
-        title: '投票成功',
-        icon: 'success'
-      })
+      if (voteCountsResult && voteCountsResult.success && voteCountsResult.voteCounts) {
+        const counts = voteCountsResult.voteCounts[matchid];
+        const totalVotes = (counts.teamAVotes || 0) + (counts.teamBVotes || 0);
+        const teamAPercentage = totalVotes > 0 ? Math.round(((counts.teamAVotes || 0) / totalVotes) * 100) : 0;
+        const teamBPercentage = 100 - teamAPercentage;
 
-    } catch (error) {
-      console.error('投票失败：', error)
-      wx.showToast({
-        title: error.message || '投票失败，请重试',
-        icon: 'none'
-      })
-    } finally {
-      if (loadingShown) {
-        wx.hideLoading()
+        // 找到当前比赛在matches数组中的索引
+        const currentMatchIndex = this.data.matches.findIndex(m => m.matchId === matchid);
+
+        if (currentMatchIndex !== -1) {
+          // 更新matches数组中当前比赛的数据
+          const updatedMatches = [...this.data.matches]; // 创建副本
+          updatedMatches[currentMatchIndex] = {
+            ...updatedMatches[currentMatchIndex],
+            hasVoted: true,
+            voteFor: team,
+            teamAVotes: counts.teamAVotes || 0,
+            teamBVotes: counts.teamBVotes || 0,
+            teamAPercentage: teamAPercentage,
+            teamBPercentage: teamBPercentage
+          };
+
+          // 使用setData更新页面显示
+          this.setData({
+            matches: updatedMatches
+          });
+        }
+      } else {
+         console.error('获取当前比赛投票统计失败：', voteCountsResult)
+      }
+
+        wx.showToast({
+          title: '投票成功',
+          icon: 'success'
+        })
+
+      } catch (error) {
+        console.error('投票失败：', error)
+        wx.showToast({
+          title: error.message || '投票失败，请重试',
+          icon: 'none'
+        })
+      } finally {
+        if (loadingShown) {
+          wx.hideLoading()
+        }
       }
     }
-  }
-})
+  })

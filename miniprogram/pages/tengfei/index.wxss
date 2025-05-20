@@ -254,3 +254,54 @@ web-view {
   color: #fff !important; /* 禁用状态的文字颜色 */
   /* Optionally add other styles like opacity or cursor */
 }
+
+/* 投票百分比横条样式 */
+.vote-percentage-bar {
+  width: 100%;
+  height: 40rpx; /* 横条高度 */
+  display: flex;
+  border-radius: 10rpx; /* 圆角 */
+  overflow: hidden; /* 隐藏溢出部分 */
+  margin-top: 10rpx; /* 与上方按钮的间距 */
+}
+
+.teamA-bar {
+  background-color: #f56c6c; /* 队伍A颜色，红色 */
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white; /* 文字颜色 */
+  font-size: 24rpx; /* 文字大小 */
+  font-weight: bold; /* 文字加粗 */
+   min-width: 80rpx; /* Minimum width to show percentage */
+}
+
+.teamB-bar {
+  background-color: #409eff; /* 队伍B颜色，蓝色 */
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white; /* 文字颜色 */
+  font-size: 24rpx; /* 文字大小 */
+  font-weight: bold; /* 文字加粗 */
+  min-width: 80rpx; /* Minimum width to show percentage */
+
+}
+
+/* 支持者人数显示区域样式 */
+.vote-count-display {
+  width: 100%;
+  display: flex;
+  justify-content: space-between; /* 使两个支持数文本左右分散对齐 */
+  padding: 0 10rpx; /* 添加左右内边距，与横条内文字对齐 */
+  box-sizing: border-box;
+  font-size: 24rpx; /* 调整字体大小 */
+  color: #555; /* 调整文字颜色 */
+  margin-top: 5rpx; /* 与上方横条的间距 */
+}
+
+.teamA-count, .teamB-count {
+  /* 可以根据需要添加额外的样式，例如字体加粗等 */
+}

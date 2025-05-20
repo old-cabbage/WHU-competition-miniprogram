@@ -71,10 +71,21 @@
             {{item.teamB}}
           </button>
         </view>
-        <!-- 投票人数显示区域 -->
-        <view class="vote-counts" wx:if="{{!item.votingOpen || item.hasVoted}}">
-          <text>{{item.teamA}} 支持数: {{item.teamAVotes}}</text>
-          <text>{{item.teamB}} 支持数: {{item.teamBVotes}}</text>
+
+        <!-- 投票百分比横条显示区域 -->
+        <view class="vote-percentage-bar" wx:if="{{ (!item.votingOpen || item.hasVoted) && (item.teamAVotes > 0 || item.teamBVotes > 0) }}">
+          <view class="teamA-bar" style="width: {{item.teamAPercentage}}%;">
+            <text wx:if="{{item.teamAPercentage > 0}}">{{item.teamAPercentage}}%</text>
+          </view>
+          <view class="teamB-bar" style="width: {{item.teamBPercentage}}%;">
+             <text wx:if="{{item.teamBPercentage > 0}}">{{item.teamBPercentage}}%</text>
+          </view>
+        </view>
+
+        <!-- 支持者人数显示区域 -->
+        <view class="vote-count-display" wx:if="{{ (!item.votingOpen || item.hasVoted) && (item.teamAVotes > 0 || item.teamBVotes > 0) }}">
+           <text class="teamA-count">{{item.teamA}} 支持数: {{item.teamAVotes}}</text>
+           <text class="teamB-count">{{item.teamB}} 支持数: {{item.teamBVotes}}</text>
         </view>
 
       </view>
