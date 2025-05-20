@@ -238,7 +238,7 @@ Page({
     // 双重校验：如果比赛未开启投票或已投票，直接返回并给出提示
     if (!currentMatch.votingOpen) {
         wx.showToast({
-            title: '该比赛已开始或已结束，无法投票',
+            title: '该比赛已开始或已结束',
             icon: 'none'
         });
         return;
@@ -246,7 +246,7 @@ Page({
 
     if (currentMatch.hasVoted) {
         wx.showToast({
-            title: '您已投过票',
+            title: '您已支持过',
             icon: 'none'
         });
         return;
@@ -255,7 +255,7 @@ Page({
     let loadingShown = false
     try {
       wx.showLoading({
-        title: '投票中...',
+        title: '进行中...',
       })
       loadingShown = true
 
@@ -315,18 +315,18 @@ Page({
           });
         }
       } else {
-         console.error('获取当前比赛投票统计失败：', voteCountsResult)
+         console.error('获取当前比赛统计失败：', voteCountsResult)
       }
 
         wx.showToast({
-          title: '投票成功',
+          title: '支持成功',
           icon: 'success'
         })
 
       } catch (error) {
-        console.error('投票失败：', error)
+        console.error('支持失败：', error)
         wx.showToast({
-          title: error.message || '投票失败，请重试',
+          title: error.message || '支持失败，请重试',
           icon: 'none'
         })
       } finally {

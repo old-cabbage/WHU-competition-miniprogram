@@ -27,7 +27,7 @@
 
   <!-- 标题文字 -->
   <view class="title">
-    <text>为你支持的球队投票</text>
+    <text>比赛信息</text>
   </view>
 
   <!-- 比赛列表区域 -->
@@ -50,7 +50,7 @@
 
         <!-- 已投票信息显示区域 -->
         <view class="voted-info" wx:if="{{item.hasVoted}}">
-          <text>您已投给 </text><text class="voted-team-name">{{item.voteFor === 'teamA' ? item.teamA : item.teamB}}</text>
+          <text>您已支持 </text><text class="voted-team-name">{{item.voteFor === 'teamA' ? item.teamA : item.teamB}}</text>
         </view>
 
         <view class="vote-section">
