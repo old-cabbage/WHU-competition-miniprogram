@@ -7,7 +7,7 @@ cloud.init({
 exports.main = async (event, context) => {
   try {
     const db = cloud.database()
-    const $ = db.command.aggregate // 引入聚合操作符
+    const $ = db.command.aggregate
 
     const { matchIds } = event
 
@@ -18,37 +18,90 @@ exports.main = async (event, context) => {
       }
     }
 
-    // 使用聚合管道统计投票数
-    const result = await db.collection('2025tengfeibeivotes').aggregate()
-      .match({ // 过滤只包含传入的matchIds的投票记录
-        matchId: $.in(matchIds)
+    // 首先尝试从缓存获取数据
+    const cacheResults = await db.collection('2025tengfeibeivotecache')
+      .where({
+        _id: $.in(matchIds)
       })
-      .group({ // 按matchId和voteFor分组并计数
-        _id: {
-          matchId: '$matchId',
-          voteFor: '$voteFor'
-        },
-        count: $.sum(1)
+      .get()
+
+    const voteCounts = {}
+    const missingMatchIds = []
+
+    // 处理缓存数据
+    if (cacheResults.data && cacheResults.data.length > 0) {
+      cacheResults.data.forEach(cache => {
+        voteCounts[cache._id] = {
+          teamAVotes: cache.teamAVotes || 0,
+          teamBVotes: cache.teamBVotes || 0
+        }
       })
-      .end()
+    }
 
-    console.log('投票统计结果：', result)
+    // 找出没有缓存的比赛ID
+    matchIds.forEach(matchId => {
+      if (!voteCounts[matchId]) {
+        missingMatchIds.push(matchId)
+      }
+    })
 
-    // 将结果转换为更易于前端处理的格式
-    const voteCounts = {};
-    if (result.list) {
-      result.list.forEach(item => {
-        const { matchId, voteFor } = item._id;
-        const count = item.count;
-        if (!voteCounts[matchId]) {
-          voteCounts[matchId] = { teamAVotes: 0, teamBVotes: 0 };
+    // 如果有缺失的缓存，则实时计算
+    if (missingMatchIds.length > 0) {
+      const result = await db.collection('2025tengfeibeivotes').aggregate()
+        .match({
+          matchId: $.in(missingMatchIds)
+        })
+        .group({
+          _id: {
+            matchId: '$matchId',
+            voteFor: '$voteFor'
+          },
+          count: $.sum(1)
+        })
+        .end()
+
+      if (result.list) {
+        result.list.forEach(item => {
+          const { matchId, voteFor } = item._id
+          const count = item.count
+          if (!voteCounts[matchId]) {
+            voteCounts[matchId] = { teamAVotes: 0, teamBVotes: 0 }
+          }
+          if (voteFor === 'teamA') {
+            voteCounts[matchId].teamAVotes = count
+          } else if (voteFor === 'teamB') {
+            voteCounts[matchId].teamBVotes = count
+          }
+        })
+
+        // 将新计算的统计数据写入缓存
+        for (const matchId of missingMatchIds) {
+          const counts = voteCounts[matchId]
+          if (counts) {
+            try {
+              await db.collection('2025tengfeibeivotecache').doc(matchId).set({
+                data: {
+                  _id: matchId,
+                  teamAVotes: counts.teamAVotes,
+                  teamBVotes: counts.teamBVotes,
+                  lastUpdated: db.serverDate()
+                }
+              })
+            } catch (error) {
+              if (error.errCode === -1) {
+                await db.collection('2025tengfeibeivotecache').add({
+                  data: {
+                    _id: matchId,
+                    teamAVotes: counts.teamAVotes,
+                    teamBVotes: counts.teamBVotes,
+                    lastUpdated: db.serverDate()
+                  }
+                })
+              }
+            }
+          }
         }
-        if (voteFor === 'teamA') {
-          voteCounts[matchId].teamAVotes = count;
-        } else if (voteFor === 'teamB') {
-          voteCounts[matchId].teamBVotes = count;
-        }
-      });
+      }
     }
 
     return {

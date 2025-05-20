@@ -21,7 +21,7 @@
     "list": [
       {
         "pagePath": "pages/index/index",
-        "text": "首页",
+        "text": "赛事",
         "iconPath": "images/icons/home.png",
         "selectedIconPath": "images/icons/home-active.png"
       },

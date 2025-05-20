@@ -25,17 +25,27 @@
     </movable-view>
   </movable-area>
 
+  <!-- 标题文字 -->
+  <view class="title">
+    <text>为你支持的球队投票</text>
+  </view>
+
   <!-- 比赛列表区域 -->
   <view class="match-list">
     <block wx:for="{{matches}}" wx:key="matchId">
       <view class="match-item">
         <view class="match-info">
-          <text>{{item.time}} - {{item.location}}</text>
+          <text>{{item.displayTime}} - {{item.location}}</text>
         </view>
         <view class="teams">
           <text>{{item.teamA}}</text>
           <text> VS </text>
           <text>{{item.teamB}}</text>
+        </view>
+
+        <!-- 比赛性质显示区域 -->
+        <view class="match-type" wx:if="{{item.matchType}}">
+          <text>{{item.matchType}}</text>
         </view>
 
         <!-- 已投票信息显示区域 -->
@@ -45,30 +55,26 @@
 
         <view class="vote-section">
           <button
-            class="vote-button"
+            class="vote-button {{!item.votingOpen || item.hasVoted ? 'disabled-button' : ''}}"
             data-matchid="{{item.matchId}}"
             data-team="teamA"
             bindtap="vote"
-            disabled="{{item.hasVoted}}"
           >
-            投给 {{item.teamA}}
+            {{item.teamA}}
           </button>
           <button
-            class="vote-button"
+            class="vote-button {{!item.votingOpen || item.hasVoted ? 'disabled-button' : ''}}"
             data-matchid="{{item.matchId}}"
             data-team="teamB"
             bindtap="vote"
-            disabled="{{item.hasVoted}}"
           >
-            投给 {{item.teamB}}
+            {{item.teamB}}
           </button>
         </view>
         <!-- 投票人数显示区域 -->
-        <view class="vote-counts">
-          <text>{{item.teamA}} 投票数: {{item.teamAVotes}}</text>
-          <text>{{item.teamB}} 投票数: {{item.teamBVotes}}</text>
-          <!-- 移除已投票信息文本 -->
-          <!-- <text wx:if="{{item.hasVoted}}"> (您已投给 {{item.voteFor === 'teamA' ? item.teamA : item.teamB}}) </text> -->
+        <view class="vote-counts" wx:if="{{!item.votingOpen || item.hasVoted}}">
+          <text>{{item.teamA}} 支持数: {{item.teamAVotes}}</text>
+          <text>{{item.teamB}} 支持数: {{item.teamBVotes}}</text>
         </view>
 
       </view>

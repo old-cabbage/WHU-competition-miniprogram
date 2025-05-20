@@ -47,16 +47,34 @@ Page({
     })
     try {
       const db = wx.cloud.database()
-      const res = await db.collection('2025tengfeibeimatches').get()
+      const res = await db.collection('2025tengfeibeimatches').orderBy('time', 'desc').get()
       console.log('比赛列表获取成功：', res.data)
 
-      const matches = res.data.map(match => ({
-        ...match,
-        hasVoted: false,
-        voteFor: '',
-        teamAVotes: 0, // 添加投票计数
-        teamBVotes: 0 // 添加投票计数
-      }))
+      const matches = res.data.map(match => {
+        const matchTime = new Date(match.time.replace(' ', 'T')) // Use time with T for internal logic
+        const currentTime = new Date()
+        const votingOpen = currentTime <= matchTime
+
+        // Format time for display
+        const dateObj = new Date(match.time.replace(' ', 'T'));
+        const year = dateObj.getFullYear();
+        const month = ('0' + (dateObj.getMonth() + 1)).slice(-2);
+        const day = ('0' + dateObj.getDate()).slice(-2);
+        const hours = ('0' + dateObj.getHours()).slice(-2);
+        const minutes = ('0' + dateObj.getMinutes()).slice(-2);
+        const displayTime = `${year}-${month}-${day} ${hours}:${minutes}`;
+
+        return {
+          ...match,
+          hasVoted: false,
+          voteFor: '',
+          teamAVotes: 0,
+          teamBVotes: 0,
+          votingOpen: votingOpen, // Add voting status flag
+          displayTime: displayTime, // Add formatted time for display
+          matchType: match.matchType // Add match type
+        }
+      })
 
       this.setData({
         matches: matches
@@ -65,10 +83,13 @@ Page({
       // 获取比赛列表后检查用户投票状态
       await this.checkUserVote()
 
-      // 获取每个比赛的投票总数
-      const matchIds = this.data.matches.map(match => match.matchId)
-      if (matchIds.length > 0) {
-        await this.getMatchVoteCounts(matchIds)
+      // 只获取已投票比赛的投票总数
+      const votedMatchIds = this.data.matches
+        .filter(match => match.hasVoted)
+        .map(match => match.matchId)
+      
+      if (votedMatchIds.length > 0) {
+        await this.getMatchVoteCounts(votedMatchIds)
       }
 
     } catch (error) {
@@ -202,6 +223,20 @@ Page({
       return
     }
 
+    // Parse match time string to Date object, replacing space with 'T' for better iOS compatibility
+    const matchTimeString = currentMatch.time.replace(' ', 'T')
+    const matchTime = new Date(matchTimeString)
+    const currentTime = new Date()
+
+    // Check if current time is after match time
+    if (currentTime > matchTime) {
+      wx.showToast({
+        title: '该比赛已开始或已结束，无法投票',
+        icon: 'none'
+      })
+      return
+    }
+
     let loadingShown = false
     try {
       wx.showLoading({
@@ -216,6 +251,16 @@ Page({
           matchId: matchid,
           voteFor: team,
           voteTime: db.serverDate()
+        }
+      })
+
+      // 更新投票缓存
+      await wx.cloud.callFunction({
+        name: 'updateTengfeibeiVoteCache',
+        data: {
+          matchId: matchid,
+          voteFor: team,
+          operation: 'add'
         }
       })
 

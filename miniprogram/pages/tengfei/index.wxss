@@ -31,11 +31,14 @@
 }
 
 .title {
+  width: 100%;
+  text-align: center;
   font-size: 36rpx;
   font-weight: bold;
   color: #333;
-  margin-bottom: 20rpx;
-  display: block;
+  margin: 0rpx 0;
+  padding: 0rpx 0;
+  margin-bottom: 5rpx;
 }
 
 web-view {
@@ -130,12 +133,25 @@ web-view {
   margin-bottom: 20rpx;
   background-color: #fff;
   box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.1);
+  position: relative; /* Add position relative to contain the absolutely positioned match-type */
 }
 
 .match-info {
   font-size: 28rpx;
   color: #666;
   margin-bottom: 10rpx;
+}
+
+/* 比赛性质显示区域样式 */
+.match-type {
+  position: absolute; /* Position absolutely */
+  top: 20rpx; /* Adjust top position as needed */
+  right: 20rpx; /* Adjust right position as needed */
+  font-size: 24rpx; /* Adjust font size as needed */
+  color: #888; /* Adjust color as needed */
+  background-color: rgba(0, 0, 0, 0.1); /* Optional: Add a subtle background */
+  padding: 5rpx 10rpx; /* Optional: Add some padding */
+  border-radius: 10rpx; /* Optional: Add rounded corners */
 }
 
 .teams {
@@ -231,4 +247,10 @@ web-view {
 /* 确保图片在圆角区域内显示正常 */
 .movable-view image {
   border-radius: 24rpx; /* 图片也添加圆角 */
+}
+
+.disabled-button {
+  background-color: #ccc !important; /* 禁用状态的背景色 */
+  color: #fff !important; /* 禁用状态的文字颜色 */
+  /* Optionally add other styles like opacity or cursor */
 }

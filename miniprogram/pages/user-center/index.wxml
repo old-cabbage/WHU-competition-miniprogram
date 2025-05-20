@@ -1,2 +1,4 @@
 <!--pages/user-center/index.wxml-->
-<text>pages/user-center/index.wxml</text>
+<view class="title">
+  <text>施工中</text>
+</view>

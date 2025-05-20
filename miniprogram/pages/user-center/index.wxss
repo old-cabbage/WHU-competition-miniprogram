@@ -1,1 +1,20 @@
 /* pages/user-center/user-center.wxss */
+.title {
+    width: 100%;
+    text-align: center;
+    font-size: 36rpx;
+    font-weight: bold;
+    color: #333;
+    margin: 100rpx 0;
+    padding: 0rpx 0;
+    margin-bottom: 5rpx;
+  }
+
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 32rpx;
+  color: #999;
+}
