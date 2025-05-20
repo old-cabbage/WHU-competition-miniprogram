@@ -15,21 +15,21 @@
   "style": "v2",
   "lazyCodeLoading": "requiredComponents",
   "tabBar": {
-    "color": "#A2A9B0",
-    "selectedColor": "#07C160",
+    "color": "#00000",
+    "selectedColor": "#1FA92A",
     "backgroundColor": "#ffffff",
     "list": [
       {
         "pagePath": "pages/index/index",
         "text": "赛事",
-        "iconPath": "images/icons/home.png",
-        "selectedIconPath": "images/icons/home-active.png"
+        "iconPath": "images/icons/trophy.png",
+        "selectedIconPath": "images/icons/trophy-activated.png"
       },
       {
         "pagePath": "pages/user-center/index",
         "text": "我",
-        "iconPath": "images/icons/usercenter.png",
-        "selectedIconPath": "images/icons/usercenter-active.png"
+        "iconPath": "images/icons/user.png",
+        "selectedIconPath": "images/icons/user-activated.png"
       }
     ]
   }
