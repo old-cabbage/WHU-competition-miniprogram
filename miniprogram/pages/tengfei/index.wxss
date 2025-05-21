@@ -163,7 +163,7 @@ web-view {
 .voted-info {
   text-align: center;
   font-size: 24rpx;
-  color: #0ace6f; /* 绿色文本 */
+  color: #1a9c5d; /* 绿色文本 */
   margin-bottom: 15rpx; /* 与下方按钮的间距 */
   font-weight: bold; /* 加粗文本 */
   width: 100%; /* 确保占据整行 */
@@ -188,7 +188,7 @@ web-view {
   /* width: calc(50% - 15rpx); */ /* 调整宽度，增加按钮间距 */
   width: calc(50% - 15rpx); /* 调整宽度，增加按钮间距 */
   font-size: 28rpx;
-  border-radius: 24rpx; /* 调整圆角为方形 */
+  border-radius: 15rpx; /* 调整圆角为方形 */
   background-color: #139e4f; /* 绿色背景 */
   color: white; /* 白色文字 */
   padding: 15rpx 0; /* 调整内边距 */
@@ -246,7 +246,7 @@ web-view {
 
 /* 确保图片在圆角区域内显示正常 */
 .movable-view image {
-  border-radius: 24rpx; /* 图片也添加圆角 */
+  border-radius: 55rpx; /* 图片也添加圆角 */
 }
 
 .disabled-button {
