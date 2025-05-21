@@ -5,7 +5,13 @@ Page({
     y: 0,
     scale: 1,
     svgSource: '',
-    matches: [] // 添加比赛列表
+    matches: [], // 添加比赛列表
+    groupedMatches: { // 添加分组比赛列表
+      inProgress: [],
+      notStarted: [],
+      ended: []
+    },
+    isLoading: false // 添加加载状态标志
   },
 
   onLoad() {
@@ -42,18 +48,19 @@ Page({
 
   // 获取比赛列表的方法
   async getMatches() {
-    wx.showLoading({
-      title: '加载比赛信息...',
-    })
+    if (this.data.isLoading) return // 如果正在加载，则直接返回
+
+    this.setData({ isLoading: true })
+    
     try {
       const db = wx.cloud.database()
-      const res = await db.collection('2025tengfeibeimatches').orderBy('time', 'desc').get()
+      const res = await db.collection('2025tengfeibeimatches').get()
       console.log('比赛列表获取成功：', res.data)
 
-      const matches = res.data.map(match => {
-        const matchTime = new Date(match.time.replace(' ', 'T')) // Use time with T for internal logic
+      let matches = res.data.map(match => {
+        const matchTime = new Date(match.time.replace(' ', 'T'))
         const currentTime = new Date()
-        const votingOpen = currentTime <= matchTime
+        const votingOpen = currentTime <= matchTime && match.state !== '已结束'
 
         // Format time for display
         const dateObj = new Date(match.time.replace(' ', 'T'));
@@ -70,25 +77,47 @@ Page({
           voteFor: '',
           teamAVotes: 0,
           teamBVotes: 0,
-          teamAPercentage: 0, // 添加百分比字段
-          teamBPercentage: 0, // 添加百分比字段
-          votingOpen: votingOpen, // Add voting status flag
-          displayTime: displayTime, // Add formatted time for display
-          matchType: match.matchType // Add match type
+          teamAPercentage: 0,
+          teamBPercentage: 0,
+          votingOpen: votingOpen, // 更新 votingOpen 逻辑，已结束的比赛不能投票
+          displayTime: displayTime,
+          matchType: match.matchType,
+          scoreA: match.scoreA,
+          scoreB: match.scoreB,
+          winner: match.state === '已结束' ? (match.scoreA > match.scoreB ? 'teamA' : (match.scoreB > match.scoreA ? 'teamB' : 'tie')) : null, // 比赛结束后才判断胜者
+          state: match.state || '未进行' // Default to 未进行 if state is missing
         }
       })
 
+      // 根据 state 排序: 进行中 -> 未进行 -> 已结束
+      // 同状态下按时间倒序排序
+      const stateOrder = { '进行中': 1, '未进行': 2, '已结束': 3 };
+      matches.sort((a, b) => {
+        const stateComparison = (stateOrder[a.state] || 4) - (stateOrder[b.state] || 4);
+        if (stateComparison !== 0) {
+          return stateComparison;
+        }
+        // 如果 state 相同，按时间倒序排
+        return new Date(b.time.replace(' ', 'T')).getTime() - new Date(a.time.replace(' ', 'T')).getTime();
+      });
+
+      // 分组比赛
+      const groupedMatches = {
+        inProgress: matches.filter(match => match.state === '进行中'),
+        notStarted: matches.filter(match => match.state === '未进行'),
+        ended: matches.filter(match => match.state === '已结束')
+      };
+
       this.setData({
-        matches: matches
+        matches: matches, // Retain the sorted flat list for checkUserVote etc.
+        groupedMatches: groupedMatches
       })
 
       // 获取比赛列表后检查用户投票状态
       await this.checkUserVote()
 
-      // 只获取已投票比赛的投票总数 或者 投票已关闭的比赛的总数
-      const matchesToGetCounts = this.data.matches.filter(match => match.hasVoted || !match.votingOpen)
-
-      const matchIds = matchesToGetCounts.map(match => match.matchId)
+      // 获取所有比赛的投票总数
+      const matchIds = matches.map(match => match.matchId)
 
       if (matchIds.length > 0) {
         await this.getMatchVoteCounts(matchIds)
@@ -101,7 +130,7 @@ Page({
         icon: 'none'
       })
     } finally {
-      wx.hideLoading()
+      this.setData({ isLoading: false })
     }
   },
 
@@ -119,36 +148,37 @@ Page({
 
       if (result && result.success && result.voteCounts) {
         const voteCounts = result.voteCounts
-        const updatedMatches = this.data.matches.map(match => {
-          const counts = voteCounts[match.matchId]
+        // 更新 matches 和 groupedMatches 中的投票数据
+        const updateMatchData = (match) => {
+           const counts = voteCounts[match.matchId]
           if (counts) {
             const totalVotes = (counts.teamAVotes || 0) + (counts.teamBVotes || 0)
             const teamAPercentage = totalVotes > 0 ? Math.round(((counts.teamAVotes || 0) / totalVotes) * 100) : 0
-            // Ensure percentages add up to 100%, assign remainder to team B
             const teamBPercentage = 100 - teamAPercentage
-
 
             return {
               ...match,
               teamAVotes: counts.teamAVotes || 0,
               teamBVotes: counts.teamBVotes || 0,
-              teamAPercentage: teamAPercentage, // 更新百分比
-              teamBPercentage: teamBPercentage // 更新百分比
+              teamAPercentage: teamAPercentage,
+              teamBPercentage: teamBPercentage
             }
           } else {
-            // If no counts for a match (e.g., no votes yet and voting open), keep percentages at 0
-            // Also keep existing vote counts if they exist from a previous state before the fetch
-            return {
-              ...match,
-              teamAVotes: match.teamAVotes || 0, // Preserve existing count if fetch failed for this match
-              teamBVotes: match.teamBVotes || 0, // Preserve existing count if fetch failed for this match
-              teamAPercentage: 0,
-              teamBPercentage: 0
-            }
+            return match
           }
-        })
+        }
+
+        const updatedMatches = this.data.matches.map(updateMatchData);
+
+        const updatedGroupedMatches = {
+           inProgress: this.data.groupedMatches.inProgress.map(updateMatchData),
+           notStarted: this.data.groupedMatches.notStarted.map(updateMatchData),
+           ended: this.data.groupedMatches.ended.map(updateMatchData),
+        }
+
         this.setData({
-          matches: updatedMatches
+          matches: updatedMatches,
+          groupedMatches: updatedGroupedMatches
         })
       } else {
          console.error('获取投票统计失败：云函数返回success为false或无voteCounts', result)
@@ -182,6 +212,7 @@ Page({
 
       const db = wx.cloud.database()
 
+      // 使用 data.matches，它是所有比赛的扁平列表
       const matchIds = this.data.matches.map(match => match.matchId)
       if (matchIds.length === 0) {
         console.log('没有比赛可检查投票状态')
@@ -198,7 +229,8 @@ Page({
 
       if (votes.data.length > 0) {
         const userVotes = votes.data
-        const updatedMatches = this.data.matches.map(match => {
+        // 更新 matches 和 groupedMatches 的 hasVoted 和 voteFor 状态
+        const updateMatchVoteStatus = (match) => {
           const userVote = userVotes.find(vote => vote.matchId === match.matchId)
           if (userVote) {
             return {
@@ -209,9 +241,19 @@ Page({
           } else {
             return match
           }
-        })
+        }
+
+        const updatedMatches = this.data.matches.map(updateMatchVoteStatus);
+
+        const updatedGroupedMatches = {
+           inProgress: this.data.groupedMatches.inProgress.map(updateMatchVoteStatus),
+           notStarted: this.data.groupedMatches.notStarted.map(updateMatchVoteStatus),
+           ended: this.data.groupedMatches.ended.map(updateMatchVoteStatus),
+        }
+
         this.setData({
-          matches: updatedMatches
+          matches: updatedMatches, // Keep matches updated as well
+          groupedMatches: updatedGroupedMatches
         })
       }
     } catch (error) {
@@ -221,10 +263,23 @@ Page({
 
   // 投票逻辑
   async vote(e) {
+    if (this.data.isLoading) return // 如果正在加载，则直接返回
+
     const { matchid, team } = e.currentTarget.dataset
 
-    const matchIndex = this.data.matches.findIndex(m => m.matchId === matchid)
-    if (matchIndex === -1) {
+    // 在 groupedMatches 中找到对应的比赛
+    let matchToUpdate = null;
+    let groupKey = '';
+    for (const key in this.data.groupedMatches) {
+        const foundMatch = this.data.groupedMatches[key].find(m => m.matchId === matchid);
+        if (foundMatch) {
+            matchToUpdate = foundMatch;
+            groupKey = key;
+            break;
+        }
+    }
+
+    if (!matchToUpdate) {
       console.error('未找到对应的比赛', matchid)
       wx.showToast({
         title: '比赛信息错误',
@@ -233,10 +288,8 @@ Page({
       return
     }
 
-    const currentMatch = this.data.matches[matchIndex]
-
     // 双重校验：如果比赛未开启投票或已投票，直接返回并给出提示
-    if (!currentMatch.votingOpen) {
+    if (!matchToUpdate.votingOpen) {
         wx.showToast({
             title: '该比赛已开始或已结束',
             icon: 'none'
@@ -244,7 +297,7 @@ Page({
         return;
     }
 
-    if (currentMatch.hasVoted) {
+    if (matchToUpdate.hasVoted) {
         wx.showToast({
             title: '您已支持过',
             icon: 'none'
@@ -252,6 +305,7 @@ Page({
         return;
     }
 
+    this.setData({ isLoading: true })
     let loadingShown = false
     try {
       wx.showLoading({
@@ -259,7 +313,6 @@ Page({
       })
       loadingShown = true
 
-      // 在客户端直接调用数据库add方法时，无需手动添加_openid
       const db = wx.cloud.database()
       await db.collection('2025tengfeibeivotes').add({
         data: {
@@ -293,14 +346,13 @@ Page({
         const teamAPercentage = totalVotes > 0 ? Math.round(((counts.teamAVotes || 0) / totalVotes) * 100) : 0;
         const teamBPercentage = 100 - teamAPercentage;
 
-        // 找到当前比赛在matches数组中的索引
-        const currentMatchIndex = this.data.matches.findIndex(m => m.matchId === matchid);
+        // 找到当前比赛在 groupedMatches 中的索引并更新
+        const matchIndexInGroup = this.data.groupedMatches[groupKey].findIndex(m => m.matchId === matchid);
 
-        if (currentMatchIndex !== -1) {
-          // 更新matches数组中当前比赛的数据
-          const updatedMatches = [...this.data.matches]; // 创建副本
-          updatedMatches[currentMatchIndex] = {
-            ...updatedMatches[currentMatchIndex],
+        if (matchIndexInGroup !== -1) {
+          const updatedGroup = [...this.data.groupedMatches[groupKey]];
+          updatedGroup[matchIndexInGroup] = {
+            ...updatedGroup[matchIndexInGroup],
             hasVoted: true,
             voteFor: team,
             teamAVotes: counts.teamAVotes || 0,
@@ -311,9 +363,29 @@ Page({
 
           // 使用setData更新页面显示
           this.setData({
-            matches: updatedMatches
+            groupedMatches: {
+                ...this.data.groupedMatches,
+                [groupKey]: updatedGroup
+            }
           });
         }
+
+         // 同时更新 matches 列表以保持数据一致性（如果需要的话，尽管当前 WXML 似乎主要使用 groupedMatches）
+        const matchIndexInFlatList = this.data.matches.findIndex(m => m.matchId === matchid);
+         if (matchIndexInFlatList !== -1) {
+             const updatedFlatList = [...this.data.matches];
+              updatedFlatList[matchIndexInFlatList] = {
+                 ...updatedFlatList[matchIndexInFlatList],
+                 hasVoted: true,
+                 voteFor: team,
+                 teamAVotes: counts.teamAVotes || 0,
+                 teamBVotes: counts.teamBVotes || 0,
+                 teamAPercentage: teamAPercentage,
+                 teamBPercentage: teamBPercentage
+             };
+             this.setData({ matches: updatedFlatList });
+         }
+
       } else {
          console.error('获取当前比赛统计失败：', voteCountsResult)
       }
@@ -333,6 +405,7 @@ Page({
         if (loadingShown) {
           wx.hideLoading()
         }
+        this.setData({ isLoading: false })
       }
     },
 

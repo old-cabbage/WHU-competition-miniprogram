@@ -158,6 +158,22 @@ web-view {
   font-size: 32rpx;
   font-weight: bold;
   margin-bottom: 20rpx;
+  display: flex; /* 使用 Flexbox 布局 */
+  justify-content: space-around; /* 子元素平均分布 */
+  align-items: center; /* 垂直居中 */
+  width: 100%; /* 确保占据整行 */
+}
+
+.team-name-left,
+.team-name-right {
+  /* 根据需要调整队伍名称的样式 */
+  flex: 1; /* 让队伍名称占据剩余空间 */
+  text-align: center; /* 文本居中 */
+}
+
+.vs-text {
+  /* VS 文字的样式 */
+  margin: 0 10rpx; /* 调整 VS 与队伍名称的间距 */
 }
 
 .voted-info {
@@ -304,4 +320,104 @@ web-view {
 
 .teamA-count, .teamB-count {
   /* 可以根据需要添加额外的样式，例如字体加粗等 */
+}
+
+/* 比分显示区域样式 */
+.score-section {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    width: 100%;
+    padding: 0 20rpx;
+    box-sizing: border-box;
+    font-size: 32rpx;
+    font-weight: bold;
+}
+
+.score-team-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 30%; /* 调整宽度 */
+    text-align: center;
+}
+
+.score-team-name {
+    font-size: 28rpx;
+    color: #333;
+    margin-bottom: 5rpx; /* 队名和比分之间的间距 */
+}
+
+.score-results {
+    display: flex;
+    align-items: center;
+}
+
+.score-box {
+    border: 2rpx solid #139e4f; /* 绿色边框 */
+    border-radius: 15rpx; /* 圆角 */
+    padding: 13rpx 20rpx; /* 增加内边距使框更宽 */
+    margin: 0 15rpx; /* 增加比分框之间的间距 */
+    min-width: 250rpx; /* 增加最小宽度 */
+    text-align: center;
+    color: #139e4f; /* 绿色文字 */
+    background-color: #e8f5e9; /* 淡绿色背景 */
+    display: flex; /* Added flex to center content */
+    justify-content: center; /* Added to center content */
+    align-items: center; /* Added to center content */
+}
+
+.score-separator {
+    font-size: 55rpx;
+    color: #333;
+    font-weight: bold;
+}
+
+/* 胜者比分框样式 */
+.winner-score-box {
+    background-color: rgba(245, 108, 108, 0.2); /* 半透明红色背景 */
+    color: #f56c6c; /* 红色文字 */
+    border-color: #f56c6c; /* 红色边框 */
+}
+
+/* 分组标题样式 */
+.section-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  text-align: center; /* 居中显示 */
+  margin: 30rpx 0 20rpx 0; /* 调整上下外边距 */
+  color: #333;
+}
+
+/* 进行中的比赛项样式 */
+.in-progress-match {
+  border: 2rpx solid #f56c6c; /* 红色边框 */
+  box-shadow: 0 0 10rpx rgba(245, 108, 108, 0.5); /* 添加红色光晕效果 */
+}
+
+/* 加载遮罩层样式 */
+.loading-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.loading-content {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 17rpx 73rpx;
+  border-radius: 20rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.1);
+}
+
+.loading-content text {
+  color: #343232;
+  font-size: 28rpx;
 }

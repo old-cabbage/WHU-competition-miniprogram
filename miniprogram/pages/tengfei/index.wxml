@@ -1,3 +1,10 @@
+<!-- 加载遮罩层 -->
+<view class="loading-mask" wx:if="{{isLoading}}">
+  <view class="loading-content">
+    <text>比赛信息收集中</text>
+  </view>
+</view>
+
 <view class="container">
   <movable-area class="movable-area" scale-area>
     <movable-view
@@ -32,64 +39,225 @@
 
   <!-- 比赛列表区域 -->
   <view class="match-list">
-    <block wx:for="{{matches}}" wx:key="matchId">
-      <view class="match-item">
-        <view class="match-info">
-          <text>{{item.displayTime}} - {{item.location}}</text>
-        </view>
-        <view class="teams">
-          <text>{{item.teamA}}</text>
-          <text> VS </text>
-          <text>{{item.teamB}}</text>
-        </view>
-
-        <!-- 比赛性质显示区域 -->
-        <view class="match-type" wx:if="{{item.matchType}}">
-          <text>{{item.matchType}}</text>
-        </view>
-
-        <!-- 已投票信息显示区域 -->
-        <view class="voted-info" wx:if="{{item.hasVoted}}">
-          <text>您已支持 </text><text class="voted-team-name">{{item.voteFor === 'teamA' ? item.teamA : item.teamB}}</text>
-        </view>
-
-        <view class="vote-section">
-          <button
-            class="vote-button {{!item.votingOpen || item.hasVoted ? 'disabled-button' : ''}}"
-            data-matchid="{{item.matchId}}"
-            data-team="teamA"
-            bindtap="vote"
-          >
-            {{item.teamA}}
-          </button>
-          <button
-            class="vote-button {{!item.votingOpen || item.hasVoted ? 'disabled-button' : ''}}"
-            data-matchid="{{item.matchId}}"
-            data-team="teamB"
-            bindtap="vote"
-          >
-            {{item.teamB}}
-          </button>
-        </view>
-
-        <!-- 投票百分比横条显示区域 -->
-        <view class="vote-percentage-bar" wx:if="{{ (!item.votingOpen || item.hasVoted) && (item.teamAVotes > 0 || item.teamBVotes > 0) }}">
-          <view class="teamA-bar" style="width: {{item.teamAPercentage}}%;">
-            <text wx:if="{{item.teamAPercentage > 0}}">{{item.teamAPercentage}}%</text>
+    <!-- 进行中的比赛 -->
+    <block wx:if="{{groupedMatches.inProgress.length > 0}}">
+      <view class="section-title">进行中</view>
+      <block wx:for="{{groupedMatches.inProgress}}" wx:key="matchId">
+        <view class="match-item in-progress-match">
+          <view class="match-info">
+            <text>{{item.displayTime}} - {{item.location}}</text>
           </view>
-          <view class="teamB-bar" style="width: {{item.teamBPercentage}}%;">
-             <text wx:if="{{item.teamBPercentage > 0}}">{{item.teamBPercentage}}%</text>
+          <view class="teams">
+            <view class="team-name-left">{{item.teamA}}</view>
+            <view class="vs-text"> VS </view>
+            <view class="team-name-right">{{item.teamB}}</view>
           </view>
-        </view>
 
-        <!-- 支持者人数显示区域 -->
-        <view class="vote-count-display" wx:if="{{ (!item.votingOpen || item.hasVoted) && (item.teamAVotes > 0 || item.teamBVotes > 0) }}">
-           <text class="teamA-count">{{item.teamA}} 支持数: {{item.teamAVotes}}</text>
-           <text class="teamB-count">{{item.teamB}} 支持数: {{item.teamBVotes}}</text>
-        </view>
+          <!-- 比赛性质显示区域 -->
+          <view class="match-type" wx:if="{{item.matchType}}">
+            <text>{{item.matchType}}</text>
+          </view>
 
-      </view>
+          <!-- 已投票信息显示区域 -->
+          <view class="voted-info" wx:if="{{item.hasVoted}}">
+            <text>您已支持 </text><text class="voted-team-name">{{item.voteFor === 'teamA' ? item.teamA : item.teamB}}</text>
+          </view>
+
+          <!-- 投票按钮区域 (比赛时间之前显示) -->
+          <view class="vote-section" wx:if="{{item.votingOpen}}">
+            <button
+              class="vote-button {{item.hasVoted ? 'disabled-button' : ''}}"
+              data-matchid="{{item.matchId}}"
+              data-team="teamA"
+              bindtap="vote"
+              >
+              {{item.teamA}}
+            </button>
+            <button
+              class="vote-button {{item.hasVoted ? 'disabled-button' : ''}}"
+              data-matchid="{{item.matchId}}"
+              data-team="teamB"
+              bindtap="vote"
+              >
+              {{item.teamB}}
+            </button>
+          </view>
+
+          <!-- 比分显示区域 (比赛时间之后显示) -->
+          <view class="score-section" wx:if="{{!item.votingOpen}}">
+              <view class="score-results">
+                  <view class="score-box {{item.winner === 'teamA' ? 'winner-score-box' : ''}}">{{item.scoreA}}</view>
+                  <text class="score-separator">:</text>
+                  <view class="score-box {{item.winner === 'teamB' ? 'winner-score-box' : ''}}">{{item.scoreB}}</view>
+              </view>
+          </view>
+
+          <!-- 投票百分比横条显示区域 -->
+          <view class="vote-percentage-bar" wx:if="{{ (!item.votingOpen && (item.teamAVotes + item.teamBVotes > 0)) || item.hasVoted }}">
+            <view class="teamA-bar" style="width: {{item.teamAPercentage}}%;">
+              <text wx:if="{{item.teamAPercentage > 0}}">{{item.teamAPercentage}}%</text>
+            </view>
+            <view class="teamB-bar" style="width: {{item.teamBPercentage}}%;">
+               <text wx:if="{{item.teamBPercentage > 0}}">{{item.teamBPercentage}}%</text>
+            </view>
+          </view>
+
+          <!-- 支持者人数显示区域 -->
+          <view class="vote-count-display" wx:if="{{ (!item.votingOpen && (item.teamAVotes + item.teamBVotes > 0)) || item.hasVoted }}">
+             <text class="teamA-count">{{item.teamA}} 支持数: {{item.teamAVotes}}</text>
+             <text class="teamB-count">{{item.teamB}} 支持数: {{item.teamBVotes}}</text>
+          </view>
+
+        </view>
+      </block>
     </block>
+
+    <!-- 未进行的比赛 -->
+    <block wx:if="{{groupedMatches.notStarted.length > 0}}">
+       <view class="section-title">未进行</view>
+      <block wx:for="{{groupedMatches.notStarted}}" wx:key="matchId">
+        <view class="match-item">
+          <view class="match-info">
+            <text>{{item.displayTime}} - {{item.location}}</text>
+          </view>
+          <view class="teams">
+            <view class="team-name-left">{{item.teamA}}</view>
+            <view class="vs-text"> VS </view>
+            <view class="team-name-right">{{item.teamB}}</view>
+          </view>
+
+          <!-- 比赛性质显示区域 -->
+          <view class="match-type" wx:if="{{item.matchType}}">
+            <text>{{item.matchType}}</text>
+          </view>
+
+          <!-- 已投票信息显示区域 -->
+          <view class="voted-info" wx:if="{{item.hasVoted}}">
+            <text>您已支持 </text><text class="voted-team-name">{{item.voteFor === 'teamA' ? item.teamA : item.teamB}}</text>
+          </view>
+
+          <!-- 投票按钮区域 (比赛时间之前显示) -->
+          <view class="vote-section" wx:if="{{item.votingOpen}}">
+            <button
+              class="vote-button {{item.hasVoted ? 'disabled-button' : ''}}"
+              data-matchid="{{item.matchId}}"
+              data-team="teamA"
+              bindtap="vote"
+              >
+              {{item.teamA}}
+            </button>
+            <button
+              class="vote-button {{item.hasVoted ? 'disabled-button' : ''}}"
+              data-matchid="{{item.matchId}}"
+              data-team="teamB"
+              bindtap="vote"
+              >
+              {{item.teamB}}
+            </button>
+          </view>
+
+          <!-- 比分显示区域 (比赛时间之后显示) -->
+          <view class="score-section" wx:if="{{!item.votingOpen}}">
+              <view class="score-results">
+                  <view class="score-box {{item.winner === 'teamA' ? 'winner-score-box' : ''}}">{{item.scoreA}}</view>
+                  <text class="score-separator">:</text>
+                  <view class="score-box {{item.winner === 'teamB' ? 'winner-score-box' : ''}}">{{item.scoreB}}</view>
+              </view>
+          </view>
+
+          <!-- 投票百分比横条显示区域 -->
+          <view class="vote-percentage-bar" wx:if="{{ (!item.votingOpen && (item.teamAVotes + item.teamBVotes > 0)) || item.hasVoted }}">
+            <view class="teamA-bar" style="width: {{item.teamAPercentage}}%;">
+              <text wx:if="{{item.teamAPercentage > 0}}">{{item.teamAPercentage}}%</text>
+            </view>
+            <view class="teamB-bar" style="width: {{item.teamBPercentage}}%;">
+               <text wx:if="{{item.teamBPercentage > 0}}">{{item.teamBPercentage}}%</text>
+            </view>
+          </view>
+
+          <!-- 支持者人数显示区域 -->
+          <view class="vote-count-display" wx:if="{{ (!item.votingOpen && (item.teamAVotes + item.teamBVotes > 0)) || item.hasVoted }}">
+             <text class="teamA-count">{{item.teamA}} 支持数: {{item.teamAVotes}}</text>
+             <text class="teamB-count">{{item.teamB}} 支持数: {{item.teamBVotes}}</text>
+          </view>
+
+        </view>
+      </block>
+    </block>
+
+     <!-- 已结束的比赛 -->
+    <block wx:if="{{groupedMatches.ended.length > 0}}">
+       <view class="section-title">已结束</view>
+      <block wx:for="{{groupedMatches.ended}}" wx:key="matchId">
+        <view class="match-item">
+          <view class="match-info">
+            <text>{{item.displayTime}} - {{item.location}}</text>
+          </view>
+          <view class="teams">
+            <view class="team-name-left">{{item.teamA}}</view>
+            <view class="vs-text"> VS </view>
+            <view class="team-name-right">{{item.teamB}}</view>
+          </view>
+
+          <!-- 比赛性质显示区域 -->
+          <view class="match-type" wx:if="{{item.matchType}}">
+            <text>{{item.matchType}}</text>
+          </view>
+
+          <!-- 已投票信息显示区域 -->
+          <view class="voted-info" wx:if="{{item.hasVoted}}">
+            <text>您已支持 </text><text class="voted-team-name">{{item.voteFor === 'teamA' ? item.teamA : item.teamB}}</text>
+          </view>
+
+          <!-- 投票按钮区域 (比赛时间之前显示) -->
+          <view class="vote-section" wx:if="{{item.votingOpen}}">
+            <button
+              class="vote-button {{item.hasVoted ? 'disabled-button' : ''}}"
+              data-matchid="{{item.matchId}}"
+              data-team="teamA"
+              bindtap="vote"
+              >
+              {{item.teamA}}
+            </button>
+            <button
+              class="vote-button {{item.hasVoted ? 'disabled-button' : ''}}"
+              data-matchid="{{item.matchId}}"
+              data-team="teamB"
+              bindtap="vote"
+              >
+              {{item.teamB}}
+            </button>
+          </view>
+
+          <!-- 比分显示区域 (比赛时间之后显示) -->
+          <view class="score-section" wx:if="{{!item.votingOpen}}">
+              <view class="score-results">
+                  <view class="score-box {{item.winner === 'teamA' ? 'winner-score-box' : ''}}">{{item.scoreA}}</view>
+                  <text class="score-separator">:</text>
+                  <view class="score-box {{item.winner === 'teamB' ? 'winner-score-box' : ''}}">{{item.scoreB}}</view>
+              </view>
+          </view>
+
+          <!-- 投票百分比横条显示区域 -->
+          <view class="vote-percentage-bar" wx:if="{{ (!item.votingOpen && (item.teamAVotes + item.teamBVotes > 0)) || item.hasVoted }}">
+            <view class="teamA-bar" style="width: {{item.teamAPercentage}}%;">
+              <text wx:if="{{item.teamAPercentage > 0}}">{{item.teamAPercentage}}%</text>
+            </view>
+            <view class="teamB-bar" style="width: {{item.teamBPercentage}}%;">
+               <text wx:if="{{item.teamBPercentage > 0}}">{{item.teamBPercentage}}%</text>
+            </view>
+          </view>
+
+          <!-- 支持者人数显示区域 -->
+          <view class="vote-count-display" wx:if="{{ (!item.votingOpen && (item.teamAVotes + item.teamBVotes > 0)) || item.hasVoted }}">
+             <text class="teamA-count">{{item.teamA}} 支持数: {{item.teamAVotes}}</text>
+             <text class="teamB-count">{{item.teamB}} 支持数: {{item.teamBVotes}}</text>
+          </view>
+
+        </view>
+      </block>
+    </block>
+
   </view>
 
 </view>
