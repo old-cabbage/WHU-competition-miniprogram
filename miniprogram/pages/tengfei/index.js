@@ -334,5 +334,21 @@ Page({
           wx.hideLoading()
         }
       }
+    },
+
+  onShareAppMessage: function () {
+    return {
+      title: '腾飞杯 - 珞珈竞赛',
+      path: '/pages/tengfei/index?from=share&page=tengfei',
+      imageUrl: '/images/icons/logo.png'
     }
-  })
+  },
+
+  onShareTimeline: function () {
+    return {
+      title: '腾飞杯 - 珞珈竞赛',
+      query: 'from=timeline&page=tengfei',
+      imageUrl: '/images/icons/logo.png'
+    }
+  }
+})
